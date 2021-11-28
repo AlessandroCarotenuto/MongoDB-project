@@ -1,0 +1,31 @@
+person.0.surname,person.0.name,person.0.sex,person.0.birthdate,person.0.address,person.0.house_number,person.0.cap,person.0.municipality,person.0.codice_fiscale,type,vaccine.1.type
+Rossi,Simona,F,1951-10-16,Via Cristoforo Colombo,3/c,72013,Ceglie Messapica,RSSSMN51R56L537R,AstraZeneca,Pfizer-BioNTech
+Bisio,Cristian,M,1944-04-13,Via Giacomo Matteotti,17,26013,Crema,BSICST44D13G987U,AstraZeneca,Moderna
+Bandini,Caterina,F,1980-08-13,Via Togliatti,4,10028,Trofarello,BNDCRN80M53A551G,Moderna,AstraZeneca
+Mancuso,Clelia,F,1988-09-20,Via Maggiore,6,48100,Ravenna,MNCCLL88P60E274L,AstraZeneca,AstraZeneca
+Lombardi,Lauretta,F,1927-07-04,Via Giacomo Matteotti,4,92013,Menfi,LMBLTT27L44C246L,Pfizer-BioNTech,AstraZeneca
+Favre,Cinzia,F,1974-03-18,Via Della Libertà,48,51031,Agliana,FVRCNZ74C58F987I,Pfizer-BioNTech,Pfizer-BioNTech
+Rizzo,Eleonora,F,1969-05-19,Largo Ferreo,9,63020,Falerone,RZZLNR69E59G224D,Pfizer-BioNTech,Moderna
+Rossi,Alessandro,M,1937-12-21,Piazza Europa,41,91023,Favignana,RSSLSN37T21A576J,AstraZeneca,Pfizer-BioNTech
+Mancini,Edra,F,1991-04-12,Via Garibaldi,103,20038,Seregno,MNCDRE91D52F549D,Pfizer-BioNTech,Pfizer-BioNTech
+Melis,Bouazza,M,1986-06-15,Piazza Imbarcadero,10,21010,Porto Valtravaglia,MLSBZZ86H15H766J,AstraZeneca,Johnson & Johnson
+Crepaldi,Piero,M,1949-07-09,Via Provinciale,60,4020,Monte San Biagio,CRPPRI49L09E689R,AstraZeneca,Pfizer-BioNTech
+Conte,Francesco Angelo,M,1937-07-29,Piazza Verdi,18,64100,Teramo,CNTFNC37L29A208U,Moderna,AstraZeneca
+Russo,Barbara,F,1995-10-29,Via Della Croce,6,20040,Aicurzio,RSSBBR95R69E365R,Johnson & Johnson,Johnson & Johnson
+Romeo,Sabrina,F,2000-03-07,Piazza Plebiscito,6/7,72015,Fasano,RMOSRN00C47M018A,Johnson & Johnson,AstraZeneca
+Laganà,Maria Cecilia,F,1993-09-12,Corso Inghilterra,26,10059,Susa,LGNMCC93P52E044A,AstraZeneca,Pfizer-BioNTech
+Russo,Giulia,F,1959-05-11,Via Canosa,153/G,70051,Barletta,RSSGLI59E51M011C,Pfizer-BioNTech,Johnson & Johnson
+Capecchi,Mohammed Rayan,M,1922-10-31,Via Pontina Km 50,700,04011,Aprilia,CPCMMM22R31H980S,Pfizer-BioNTech,Johnson & Johnson
+Martinelli,Tarik,M,1986-08-04,Via Diaz,388,84060,Prignano Cilento,MRTTRK86M04F307L,AstraZeneca,Pfizer-BioNTech
+Rossi ,Austin,M,1932-06-27,Via Del Cristo,96,36061,Bassano Del Grappa,RSSSTN32H27G794N,Johnson & Johnson,Johnson & Johnson
+Manfredi,Galasse,M,1923-06-06,Via Romolo Guffanti,angolo via Ferloni,22070,Bulgarograsso,MNFGSS23H06D629F,AstraZeneca,Moderna
+Lorusso,Leonardo,M,1933-07-08,Via Torquato Tasso,27,84051,Centola,LRSLRD33L08B716S,Johnson & Johnson,Pfizer-BioNTech
+Peaquin,Simone,M,1926-07-12,Via L. Condorelli,4,66040,Pizzoferrato,PQNSMN26L12E470A,Moderna,Johnson & Johnson
+Carta,Emine,F,1970-07-13,Via Conte Ruggero Normanno,43,89822,Spadola,CRTMNE70L53L235H,AstraZeneca,Johnson & Johnson
+Rossi,Sara,F,1932-09-13,Via Trieste,16,87046,Montalto Uffugo,RSSSRA32P53H461G,Moderna,Johnson & Johnson
+Vella,Annamaria,F,1965-05-28,Via Giuseppe Garibaldi,129,91014,Castellammare Del Golfo,VLLNMR65E68I185A,Johnson & Johnson,AstraZeneca
+Ramella,Efisio,M,1968-01-03,Via Sacharov,2/4/6,70010,Valenzano,RMLFSE68A03E821X,AstraZeneca,Pfizer-BioNTech
+Lenzi,Riccardo,M,1997-09-05,Via Olevano,87/89,10095,Grugliasco,LNZRCR97P05C415S,Johnson & Johnson,Pfizer-BioNTech
+Marchetti,Rosanna,F,1926-11-12,Via Faureana,112,32040,Lorenzago Di Cadore,MRCRNN26S52I251L,Johnson & Johnson,Moderna
+Giordano,Nadia,F,1995-03-12,Via Salvatore Citelli,39,95124,Catania,GRDNDA95C52G982K,Moderna,Johnson & Johnson
+Vailati,Ermanno,M,1922-01-29,Corso Europa,1140 R,16148,Genova,VLTRNN22A29D150V,Moderna,Johnson & Johnson
