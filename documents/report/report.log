@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (MiKTeX 21.10) (preloaded format=pdflatex 2021.12.3)  6 DEC 2021 21:03
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (MiKTeX 21.10) (preloaded format=pdflatex 2021.12.3)  7 DEC 2021 20:52
 entering extended mode
 **./report.tex
 (report.tex
@@ -708,7 +708,7 @@ l.216 \end{document}
 LaTeX Warning: There were multiply-defined labels.
 
 Package rerunfilecheck Info: File `report.out' has not changed.
-(rerunfilecheck)             Checksum: AA07D0DC0B5E48DA0152F031208521BB;4021.
+(rerunfilecheck)             Checksum: F4EE02F61ED5F1ABF0B862911D9633E0;4026.
  ) 
 Here is how much of TeX's memory you used:
  21347 strings out of 478681
@@ -717,7 +717,7 @@ Here is how much of TeX's memory you used:
  39052 multiletter control sequences out of 15000+600000
  410228 words of font info for 50 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 84i,6n,89p,995b,463s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 84i,6n,89p,1632b,463s stack positions out of 5000i,500n,10000p,200000b,80000s
  <C:\Users\carot\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm
 1200.pk><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/
 Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program File
@@ -726,7 +726,7 @@ s/type1/public/amsfonts/cm/cmr12.pfb><C:/Program Files/MiKTeX/fonts/type1/publi
 c/amsfonts/cm/cmr17.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm
 /cmr8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmti12.pfb><C
 :/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
-Output written on report.pdf (12 pages, 267163 bytes).
+Output written on report.pdf (12 pages, 267402 bytes).
 PDF statistics:
  254 PDF objects out of 1000 (max. 8388607)
  65 named destinations out of 1000 (max. 500000)
