@@ -1,0 +1,125 @@
+QUERY:
+1.In quanti hanno il super green pass? (ultima vaccinazione entro 9 mesi=270 giorni)
+
+db.certifications.find({
+  "vaccination":{"$exists":true},
+  "vaccination.datetime":{"$gte":new Date(ISODate().getTime() - 1000 * 3600 * 24 * 270)}
+},{
+  "vaccination.datetime":1
+})
+
+OPPURE(con il vincolo che la vaccination datetime deve essere più piccola della data odierna)
+
+db.certifications.find({
+  "$and":[{"vaccination":{"$exists":true}},
+  {"vaccination.datetime":{"$gte":new Date(ISODate().getTime() - 1000 * 3600 * 24 * 270)}},
+  {"vaccination.datetime":{"$lte":new Date(ISODate().getTime())}}]
+},{
+  "vaccination.datetime":1
+})
+
+2.numero di vaccinazioni per mese ordinate
+ db.certifications.aggregate(
+    { $unwind : "$vaccination" }, //or { $unwind : "$test" },
+    { $group: {
+        _id: {month: { $month: "$vaccination.datetime" }, year: { $year: "$vaccination.datetime" } },
+        count: { $sum: 1 }
+    }
+    },{
+      "$sort":{count:-1}
+    }
+)
+
+3.La media dell'età dei non vaccinati (boomer query)
+
+ db.certifications.aggregate([
+    { $match : { 
+      "person.birthdate" : { $exists : true},
+      "vaccine":{"$exists":false}
+    } },
+    { $project : {"ageInMillis" : {$subtract : [new Date(), "$person.birthdate"] } } }, 
+    { $project : {"age" : {$divide : ["$ageInMillis", 31558464000] }}},
+    // take the floor of the previous number:
+    { $project : {"age" : {$subtract : ["$age", {$mod : ["$age",1]}]}}},
+    { $group : { _id : true, avgAge : { $avg : "$age"} } },
+    { $project: { "avgAge": { $round: ["$avgAge", 2] }}}
+])
+
+4.Persone attualmente infette (ultimo test positivo)
+
+ db.certifications.aggregate([
+  {$addFields : {test : {$reduce : {
+        input : "$test", 
+        initialValue : {datetime : new ISODate('2000-01-01T00:00:00')}, 
+        in : {$cond: [{$gte : ["$$this.datetime", "$$value.datetime"]},"$$this", "$$value"]}}
+    }}},
+     { $match:{"test.result":"Positive"}}
+])
+
+5.Numero di test per authorized body (con join)
+
+db.certifications.aggregate([
+  { $unwind : "$test" },
+  {$group:{
+    _id:"$test.id",
+    count:{$sum:1}
+  }},
+  {
+    "$lookup": {
+        "from": "authorizedBodies",
+        "localField": "_id",
+        "foreignField": "id",
+        "as": "authorizedBodyInfo"
+        }
+  }
+  ])
+
+
+oppure con select dei campi:
+
+db.certifications.aggregate([
+  { $unwind : "$test" },
+  {$group:{
+    _id:"$test.id_authorized_body",
+    count:{$sum:1}
+  }},
+  {
+    "$lookup": {
+        "from": "authorizedBodies",
+       "localField": "_id",
+        "foreignField": "_id",
+        "as": "authorizedBodyInfo"
+        }
+  },
+  {
+    "$project":{_id:0,count:1,
+    "authorizedBodyInfo.name":"$authorizedBodyInfo.name",
+    "authorizedBodyInfo.type":"$authorizedBodyInfo.type"
+    }
+  }
+  ])
+
+UTILITIES:
+-Conta quanti test o vaccini:
+
+ db.certifications.aggregate(
+    { $unwind : "$test" }, // { $unwind : "$vaccination" },
+    { $group: {
+        _id: true,
+        count: { $sum: 1 }
+    }
+})
+
+
+
+db.certifications.aggregate([
+                        // connect all tables
+
+                        {"$lookup": {
+                          "from": "authorizedBodies",
+                          "localField": "id",
+                          "foreignField": "_id",
+                          "as": "R"
+                        }}
+                   
+                        ])
