@@ -99,6 +99,62 @@ db.certifications.aggregate([
   }
   ])
 
+COMMANDS:
+
+1.inserire nuovo authorized body [CREATE]
+
+db.authorizedBodies.insertOne({
+  "address":{
+    "address":"Via Roma",
+    "cap":"24030",
+    "geopoint":"45.0000 9.0000",
+    "house":"13b",
+    "municipality":"Bergamo",
+  },
+  "department":"covid test",
+  "name":"Farmacia Comunale",
+  "type":"pharmacy",
+  "healthcarePersonnel":[
+    {
+      "cellphone":"+393476574382",
+      "codice_fiscale":"DNTHGB87P15G764J",
+      "name":"Carlo",
+      "role":"pharmacist",
+      "surname":"Merlutti",
+    }
+  ]
+})
+
+2.Aggiunge un test alla certification [UPDATE]
+
+db.certifications.updateOne({
+  "_id":ObjectId('61af82fb2468d4592b37b70e')
+},{
+  "$push":{
+    "test":{
+      "$each":[{
+        "datetime":ISODate('2021-12-08T16:20:00'),
+        "healthcarePersonnel":{
+          "codice_fiscale":"PLCLRT48C02C224Y",
+          "name":"Alberto Christian",
+          "surname":"Paolucci"
+        },
+        "id_authorized_body":ObjectId('61acd3e25ca7e964a122def1'),
+        "result":"Positive",
+        "type":"Molecular"
+      }]
+    }
+  }
+})
+
+3.elimina tutti gli authorized body che fanno test e sono farmacie (in caso vietino alle farmacie di fare test)[DELETE]
+
+db.authorizedBodies.deleteMany({
+  "$and":[
+    {"type":"pharmacy"},
+    {"department":"covid test"}]
+})
+
 UTILITIES:
 -Conta quanti test o vaccini:
 
