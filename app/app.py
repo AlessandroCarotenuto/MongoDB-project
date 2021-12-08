@@ -1,6 +1,8 @@
 import PySimpleGUI as sg
 from pymongo import MongoClient
 from fpdf import FPDF
+import pprint as pp
+import re
 
 # save FPDF() class into a variable pdf
 pdf = FPDF()
@@ -15,54 +17,30 @@ for m in range(0, 60):
     minuteTable.append(str(m))
 
 
-def pretty_people(result, name):
-    new_data = []
-    i = 1
-    for person in result:
-        new_data.append(str(i) + ") Name: " + person[name + ".name"] +
-                        " - Surname: " + person[name + ".surname"] +
-                        " - CF: " + str(person[name + ".cf"]))
-        i = i + 1
-    return new_data
+def substituteDates(s):
+    result = re.search('datetime.datetime\((.*)\)', s)
+    while result != None:
+        parts = result.group(1).split(", ")
+        date = parts[0] + "-" + parts[1] + "-" + parts[2] + " " + parts[3] + ":" + parts[4]
+        s = s.replace(result.group(0), date)
+        result = re.search('datetime.datetime\((.*)\)', s)
+    return s
 
 
 # column where user can query manually
 custom_query_column = [
     [
-        sg.Text("Search for partecipants:", font="16"),
+        sg.Text("Search for your certification:", font="16"),
     ],
     [
-        sg.In(key='-DATE-', size=(20, 1), default_text="2021-10-31"),
-        sg.CalendarButton('Choose date', close_when_date_chosen=True, key="-CALENDAR-",
-                          format='%Y-%m-%d')
+        sg.In(key='-CF-', size=(20, 1), default_text="RCCLSN63R22E126B"),
     ],
     [
-        sg.Text("Starting time:", font="10"),
-        sg.OptionMenu(
-            values=timeTable, size=(6, 1), expand_x=True, key="-START-TIME-",
-            default_value="00:00"
-        ),
-        sg.Text("Ending time:", font="10"),
-        sg.OptionMenu(
-            values=timeTable, size=(6, 1), expand_x=True, key="-END-TIME-",
-            default_value="23:00"
-        ),
+        sg.Button(button_text="Get your certification", enable_events=True, key="-GET-CERTIFICATION-")
     ],
     [
-        sg.Text("Select the place:", font="10"),
-    ],
-    [
-        sg.Checkbox("Unvaccinated", enable_events=True, key="-UNVACCINATED-"),
-        sg.Checkbox("Vaccinated", enable_events=True, key="-VACCINATED-"),
-        sg.Checkbox("Tested Negative", enable_events=True, key="-TESTED-"),
-        sg.Button(button_text="Send Query", enable_events=True, key="-CUSTOM-QUERY-")
-    ],
-    [
-        sg.Listbox(
-            values=[], enable_events=True, size=(55, 20),
-            key="-CUSTOM-LIST-",
-            horizontal_scroll=True
-        )
+        sg.Text(""),
+        sg.Button(button_text="Download", disabled=True, enable_events=True, key="-DOWNLOAD-")
     ]
 ]
 
@@ -204,48 +182,66 @@ layout_page = "Queries"
 # init database
 client = MongoClient("mongodb+srv://root:smbud@smbud.icy9p.mongodb.net/test?retryWrites=true&w=majority")
 db = client.smbud_data
-collection = db.smbud
+collection = db.certifications
+# nine_month_ago = datetime.datetime.today() - datetime.timedelta(days=270)
+#
+# query1 = {
+#   "vaccination":{"$exists": True},
+#   "vaccination.datetime":{"$gte": nine_month_ago}
+# }
+# query2 = {
+#   "vaccination.datetime":1
+# }
+#
+# for person in collection.find(query1, query2):
+#     print(person)
 
 # event loop
+certification = None
+cf = ""
 while True:
     event, values = window.read()
 
-    if event == "-VACCINATED-":
-        if values["-VACCINATED-"]:
-            window["-UNVACCINATED-"].update(disabled=True)
+    if event == "-CF-":
+        if values["-CF-"] != "":
+            window["-GET-CERTIFICATION-"].update(disabled=False)
         else:
-            window["-UNVACCINATED-"].update(disabled=False)
+            window["-GET-CERTIFICATION-"].update(disabled=True)
 
-    if event == "-UNVACCINATED-":
-        if values["-UNVACCINATED-"]:
-            window["-VACCINATED-"].update(disabled=True)
-        else:
-            window["-VACCINATED-"].update(disabled=False)
+    if event == "-GET-CERTIFICATION-":
+        cf = values["-CF-"]
+        query = {
+            "person.codice_fiscale": cf,
+        }
+        certification = collection.find_one(query)
+        if certification is not None:
+            window["-DOWNLOAD-"].update(disabled=False)
 
-    if event == "-CUSTOM-QUERY-":
-        date = window["-DATE-"].get().split("-")
-        start_time = values["-START-TIME-"].split(":")
-        end_time = values["-END-TIME-"].split(":")
-        place = values["-PLACE-"]
-        a1 = ""
-        a2 = ""
-        a3 = ""
-        a4 = ""
-        a5 = ""
+    if event == "-DOWNLOAD-":
+        pdf.add_page()
 
-        if values["-VACCINATED-"]:
-            pass
-        if values["-TESTED-"]:
-            pass
-        if values["-UNVACCINATED-"]:
-            pass
+        pdf.set_font("Arial", size=15)
+        pdf.set_title("Your Certification")
 
-        query = ""
-        # data = graph.run(query).data()
-        # pretty_data = pretty_people(data, "p")
-        # window["-CUSTOM-LIST-"].update(pretty_data)
-        # if not data:
-        #     sg.Popup('No result', keep_on_top=True)
+        pdf.set_text_color(255, 0, 0)
+        pdf.cell(200, 10, "Your Certification", ln=1, align='C')
+        pdf.set_text_color(0, 0, 0)
+
+        string = pp.pformat(certification)
+        string = string.replace("{", "")
+        string = string.replace("}", "")
+        string = string.replace("[", "")
+        string = string.replace("]", "")
+        string = string.replace("'", "")
+        string = substituteDates(string)
+
+        pdf.multi_cell(200, 10, string)
+
+        pdf.set_author("Polytechnic of Milan")
+        # save the pdf with name .pdf
+        pdf.output(cf + "_certification.pdf")
+        pdf.close()
+        pdf = FPDF()
 
     if event == "-SEND-QUERY-":
         pretty_data = []
