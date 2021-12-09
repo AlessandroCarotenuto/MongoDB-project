@@ -3,6 +3,7 @@ from pymongo import MongoClient
 from fpdf import FPDF
 import pprint as pp
 import re
+import datetime
 
 # save FPDF() class into a variable pdf
 pdf = FPDF()
@@ -48,7 +49,7 @@ custom_query_column = [
 pred_query_column = [
     [
         sg.OptionMenu(
-            values=["People whose last test was positive", "Cohabitants of infected", "Infection Statistics",
+            values=["People with SuperGreenPass", "Number of vaccinations", "Average age of unvaccinated people",
                     "Vaccinated in last month", "People without Greenpass"], size=(12, 1),
             expand_x=True,
             key="-QUERY-",
@@ -180,8 +181,8 @@ layout = [[sg.Column(query_layout, key='-COLQueries-'), sg.Column(crud_layout, v
 window = sg.Window("CertificationsManager 1.0", layout)
 layout_page = "Queries"
 # init database
-client = MongoClient("mongodb+srv://root:smbud@smbud.icy9p.mongodb.net/test?retryWrites=true&w=majority")
-db = client.smbud_data
+client = MongoClient("mongodb+srv://root:smbud@cluster0.xgxor.mongodb.net/test?retryWrites=true&w=majority")
+db = client.admin
 collection = db.certifications
 # nine_month_ago = datetime.datetime.today() - datetime.timedelta(days=270)
 #
@@ -246,20 +247,43 @@ while True:
     if event == "-SEND-QUERY-":
         pretty_data = []
         base_query = ""
-        if values["-QUERY-"] == "People whose last test was positive":
-            query = ""
-            # data = graph.run(query).data()
-            # pretty_data = pretty_people(data, "illPeople")
-        if values["-QUERY-"] == "Cohabitants of infected":
-            query = base_query + ""
-            # data = graph.run(query).data()
-            # pretty_data = pretty_people(data, "p")
-        if values["-QUERY-"] == "Infection Statistics":
-            query = ""
-            # data = graph.run(query).data()
-            # print(data)
-            # for attribute in data[0]:
-            #     pretty_data.append(str(attribute) + ": " + str(data[0][attribute]))
+        if values["-QUERY-"] == "People with SuperGreenPass":
+            nine_month_ago = datetime.datetime.today() - datetime.timedelta(days=270)
+
+            query1 = {
+                "vaccination": {"$exists": True},
+                "vaccination.datetime": {"$gte": nine_month_ago}
+            }
+            query2 = {
+                "vaccination.datetime": 1
+            }
+            certification = collection.find(query1, query2)
+            for person in certification:
+                string = pp.pformat(certification)
+                pretty_data.append(string)
+        if values["-QUERY-"] == "Number of vaccinations":
+            query1 = {
+                "$unwind": "$vaccination"
+            }
+            query2 = {"$group": {
+                "_id": {"month": {"$month": "$vaccination.datetime"}, "year": {"$year": "$vaccination.datetime"}},
+                "count": {"$sum": 1}
+            }}
+            query3 = {
+                "$sort": {"count": -1}
+            }
+            certification = collection.aggregate(query1, query2, query3)
+            for person in certification:
+                string = pp.pformat(certification)
+                pretty_data.append(string)
+        if values["-QUERY-"] == "Average age of unvaccinated people":
+            query1 = {"$match": {
+                "person.birthdate": {"$exists": True},
+                "vaccine": {"$exists": False}
+            }}
+            query2 = {"$project": {"ageInMillis": {"$subtract": ["new Date()", "$person.birthdate"]}}}
+            query3 = {"$project": {"age": {"$divide": ["$ageInMillis", 31558464000]}}}
+            #DA CAPIRE ORA
         if values["-QUERY-"] == "Vaccinated in last month":
             query = ""
             # data = graph.run(query).data()
