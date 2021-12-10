@@ -4,6 +4,7 @@ from fpdf import FPDF
 import pprint as pp
 import re
 import datetime
+import pandas as pd
 
 # save FPDF() class into a variable pdf
 pdf = FPDF()
@@ -17,14 +18,32 @@ minuteTable = []
 for m in range(0, 60):
     minuteTable.append(str(m))
 
+# Load list of authorized body names and types
+df = pd.read_csv("../db/ab.csv", encoding='latin-1')
+authorizedBodyIDs = df["_id"]
+authorizedBodyNames = df.name
+authorizedBodyTypes = df.type
 
-def substituteDates(s):
+
+def formatResult(s, removeIDdata):
     result = re.search('datetime.datetime\((.*)\)', s)
-    while result != None:
+    while result is not None:
         parts = result.group(1).split(", ")
         date = parts[0] + "-" + parts[1] + "-" + parts[2] + " " + parts[3] + ":" + parts[4]
         s = s.replace(result.group(0), date)
         result = re.search('datetime.datetime\((.*)\)', s)
+
+    s = s.replace("{", "")
+    s = s.replace("}", "")
+    s = s.replace("[", "")
+    s = s.replace("]", "")
+    s = s.replace("'", "")
+
+    if removeIDdata:
+        id_to_replace = re.search('_id: (.*),', s)
+        s = s.replace(id_to_replace.group(0), "")
+    else:
+        s = s.replace("_id:", "")
     return s
 
 
@@ -50,7 +69,7 @@ pred_query_column = [
     [
         sg.OptionMenu(
             values=["People with SuperGreenPass", "Number of vaccinations", "Average age of unvaccinated people",
-                    "Vaccinated in last month", "People without Greenpass"], size=(12, 1),
+                    "Infected people", "No. of tests for authorized body"], size=(12, 1),
             expand_x=True,
             key="-QUERY-",
             default_value="Select a predefined query",
@@ -69,92 +88,47 @@ pred_query_column = [
 # column where user can use commands
 commands_query_column = [
     [
-        sg.Text("Create a new meeting:", font="16"),
+        sg.Text("Create a new test:", font="16"),
     ],
     [
-        sg.In(key='-MEETING-DATE-', size=(20, 1), default_text="2021-10-31"),
+        sg.In(key='-TEST-DATE-', size=(20, 1), default_text="2021-10-31"),
         sg.CalendarButton('Choose date', close_when_date_chosen=True, key="-CALENDAR-",
                           format='%Y-%m-%d')
     ],
     [
         sg.Text("Hour:", font="10"),
         sg.OptionMenu(
-            values=hourTable, size=(6, 1), expand_x=True, key="-MEETING-HOUR-",
+            values=hourTable, size=(6, 1), expand_x=True, key="-TEST-HOUR-",
             default_value="10"
         ),
         sg.Text("Minute:", font="10"),
         sg.OptionMenu(
-            values=minuteTable, size=(6, 1), expand_x=True, key="-MEETING-MINUTE-",
+            values=minuteTable, size=(6, 1), expand_x=True, key="-TEST-MINUTE-",
             default_value="30"
         ),
     ],
     [
-        sg.Text("First person CF:", font="10"),
-        sg.In(key='-FIRST-PERSON-', size=(20, 1), default_text="DGSMRC50A10F205I"),
+        sg.Text("CF:", font="10"),
+        sg.In(key='-TEST-CF-', size=(20, 1), default_text="RCCLSN63R22E126B"),
     ],
     [
-        sg.Text("Second person CF:", font="10"),
-        sg.In(key='-SECOND-PERSON-', size=(20, 1), default_text="SNNFRC32E03F205E"),
-    ],
-    [
-        sg.Button(button_text="Create meeting",
-                  enable_events=True,
-                  key="-CREATE-MEETING-",
-                  expand_x=True)
-    ],
-    [
-        sg.HorizontalSeparator()
-    ],
-    [
-        sg.Text("Create a new visit:", font="16"),
-    ],
-    [
-        sg.In(key='-VISIT-DATE-', size=(20, 1), default_text="2021-10-31"),
-        sg.CalendarButton('Choose date', close_when_date_chosen=True, key="-CALENDAR-",
-                          format='%Y-%m-%d'),
-    ],
-    [
-        sg.Text("Hour in:", font="10"),
         sg.OptionMenu(
-            values=hourTable, size=(6, 1), expand_x=True, key="-VISIT-HOUR-IN",
-            default_value="10"
+            values=authorizedBodyNames, size=(12, 1), expand_x=True, key="-AUTHORIZED-BODY-",
+            default_value=authorizedBodyNames[0]
         ),
-        sg.Text("Minute in:", font="10"),
-        sg.OptionMenu(
-            values=minuteTable, size=(6, 1), expand_x=True, key="-VISIT-MINUTE-IN",
-            default_value="30"
-        ),
-        sg.VerticalSeparator(),
-        sg.Text("Hour out:", font="10"),
-        sg.OptionMenu(
-            values=hourTable, size=(6, 1), expand_x=True, key="-VISIT-HOUR-OUT",
-            default_value="11"
-        ),
-        sg.Text("Minute out:", font="10"),
-        sg.OptionMenu(
-            values=minuteTable, size=(6, 1), expand_x=True, key="-VISIT-MINUTE-OUT",
-            default_value="30"
-        )
     ],
     [
-        sg.Text("Visitor person CF:", font="10"),
-        sg.In(key='-VISITOR-', size=(20, 1), default_text="DGSMRC50A10F205I"),
-        sg.Text("Select the place:", font="10")
+        sg.Checkbox("Positive", enable_events=True, key="-POSITIVE-"),
+        sg.Checkbox("Negative", enable_events=True, key="-NEGATIVE-")
     ],
     [
-        sg.Button(button_text="Create visit",
+        sg.Checkbox("Molecular", enable_events=True, key="-MOLECULAR-"),
+        sg.Checkbox("Antigen", enable_events=True, key="-ANTIGEN-")
+    ],
+    [
+        sg.Button(button_text="Create test",
                   enable_events=True,
-                  key="-CREATE-VISIT-",
-                  expand_x=True)
-    ],
-    [
-        sg.HorizontalSeparator()
-    ],
-    [
-        sg.Text("Flush all public place visits older than 1 year", font="10"),
-        sg.Button(button_text="Delete",
-                  enable_events=True,
-                  key="-FLUSH-",
+                  key="-CREATE-TEST-",
                   expand_x=True)
     ]
 ]
@@ -181,27 +155,40 @@ layout = [[sg.Column(query_layout, key='-COLQueries-'), sg.Column(crud_layout, v
 window = sg.Window("CertificationsManager 1.0", layout)
 layout_page = "Queries"
 # init database
-client = MongoClient("mongodb+srv://root:smbud@cluster0.xgxor.mongodb.net/test?retryWrites=true&w=majority")
-db = client.admin
+# TO CHANGE DEPENDING ON YOUR DATABASE ADDRESS
+client = MongoClient("mongodb+srv://root:smbud@smbud.icy9p.mongodb.net/test?retryWrites=true&w=majority")
+db = client.smbud_data
 collection = db.certifications
-# nine_month_ago = datetime.datetime.today() - datetime.timedelta(days=270)
-#
-# query1 = {
-#   "vaccination":{"$exists": True},
-#   "vaccination.datetime":{"$gte": nine_month_ago}
-# }
-# query2 = {
-#   "vaccination.datetime":1
-# }
-#
-# for person in collection.find(query1, query2):
-#     print(person)
 
 # event loop
 certification = None
 cf = ""
 while True:
     event, values = window.read()
+
+    if event == "-POSITIVE-":
+        if values["-POSITIVE-"]:
+            window["-NEGATIVE-"].update(disabled=True)
+        else:
+            window["-NEGATIVE-"].update(disabled=False)
+
+    if event == "-NEGATIVE-":
+        if values["-NEGATIVE-"]:
+            window["-POSITIVE-"].update(disabled=True)
+        else:
+            window["-POSITIVE-"].update(disabled=False)
+
+    if event == "-MOLECULAR-":
+        if values["-MOLECULAR-"]:
+            window["-ANTIGEN-"].update(disabled=True)
+        else:
+            window["-ANTIGEN-"].update(disabled=False)
+
+    if event == "-ANTIGEN-":
+        if values["-ANTIGEN-"]:
+            window["-MOLECULAR-"].update(disabled=True)
+        else:
+            window["-MOLECULAR-"].update(disabled=False)
 
     if event == "-CF-":
         if values["-CF-"] != "":
@@ -229,12 +216,7 @@ while True:
         pdf.set_text_color(0, 0, 0)
 
         string = pp.pformat(certification)
-        string = string.replace("{", "")
-        string = string.replace("}", "")
-        string = string.replace("[", "")
-        string = string.replace("]", "")
-        string = string.replace("'", "")
-        string = substituteDates(string)
+        string = formatResult(string, True)
 
         pdf.multi_cell(200, 10, string)
 
@@ -255,11 +237,14 @@ while True:
                 "vaccination.datetime": {"$gte": nine_month_ago}
             }
             query2 = {
-                "vaccination.datetime": 1
+                "person.name": "$person.name",
+                "person.surname": "$person.surname",
+                "person.codice_fiscale": "$person.codice_fiscale"
             }
-            certification = collection.find(query1, query2)
-            for person in certification:
-                string = pp.pformat(certification)
+            data = collection.find(query1, query2)
+            for person in data:
+                string = pp.pformat(person)
+                string = formatResult(string, True)
                 pretty_data.append(string)
         if values["-QUERY-"] == "Number of vaccinations":
             query1 = {
@@ -272,69 +257,129 @@ while True:
             query3 = {
                 "$sort": {"count": -1}
             }
-            certification = collection.aggregate(query1, query2, query3)
-            for person in certification:
-                string = pp.pformat(certification)
+            pipeline = [query1, query2, query3]
+            data = collection.aggregate(pipeline)
+            for person in data:
+                string = pp.pformat(person)
+                string = formatResult(string, False)
                 pretty_data.append(string)
         if values["-QUERY-"] == "Average age of unvaccinated people":
             query1 = {"$match": {
                 "person.birthdate": {"$exists": True},
                 "vaccine": {"$exists": False}
             }}
-            query2 = {"$project": {"ageInMillis": {"$subtract": ["new Date()", "$person.birthdate"]}}}
+            query2 = {"$project": {"ageInMillis": {"$subtract": [datetime.datetime.today(), "$person.birthdate"]}}}
             query3 = {"$project": {"age": {"$divide": ["$ageInMillis", 31558464000]}}}
-            #DA CAPIRE ORA
-        if values["-QUERY-"] == "Vaccinated in last month":
-            query = ""
-            # data = graph.run(query).data()
-            # pretty_data = pretty_people(data, "n")
-        if values["-QUERY-"] == "People without Greenpass":
-            query = ""
-            # data = graph.run(query).data()
-            # pretty_data = pretty_people(data, "noTest")
+            query4 = {"$project": {"age": {"$subtract": ["$age", {"$mod": ["$age", 1]}]}}}
+            query5 = {"$group": {"_id": True, "avgAge": {"$avg": "$age"}}}
+            query6 = {"$project": {"avgAge": {"$round": ["$avgAge", 2]}}}
+            pipeline = [query1, query2, query3, query4, query5, query6]
+            data = collection.aggregate(pipeline)
+            for person in data:
+                string = pp.pformat(person)
+                string = formatResult(string, True)
+                pretty_data.append(string)
+        if values["-QUERY-"] == "Infected people":
+            query1 = {"$addFields": {"test": {"$reduce": {
+                "input": "$test",
+                "initialValue": {"datetime": datetime.datetime(2000, 1, 1)},
+                "in": {"$cond": [{"$gte": ["$$this.datetime", "$$value.datetime"]}, "$$this", "$$value"]}}
+            }}}
+            query2 = {"$match": {"test.result": "Positive"}}
+            query3 = {"$project": {
+                "person.name": "$person.name",
+                "person.surname": "$person.surname",
+                "person.codice_fiscale": "$person.codice_fiscale",
+            }}
+            pipeline = [query1, query2, query3]
+            data = collection.aggregate(pipeline)
+            for person in data:
+                string = pp.pformat(person)
+                string = formatResult(string, True)
+                pretty_data.append(string)
+        if values["-QUERY-"] == "No. of tests for authorized body":
+            query1 = {"$unwind": "$test"}
+            query2 = {"$group": {
+                "_id": "$test.id_authorized_body",
+                "count": {"$sum": 1}
+            }}
+            query3 = {
+                "$lookup": {
+                    "from": "authorizedBodies",
+                    "localField": "_id",
+                    "foreignField": "id",
+                    "as": "authorizedBodyInfo"
+                }
+            }
+            query4 = {
+                "$project": {"_id": 0, "count": 1
+                             }
+            }
+            pipeline = [query1, query2, query3, query4]
+            data = collection.aggregate(pipeline)
+            i = 0
+            for body in data:
+                string = pp.pformat(body)
+                string = formatResult(string, False)
+                string = authorizedBodyNames[i] + " (" + authorizedBodyTypes[i] + ") " + string
+                pretty_data.append(string)
+                i = i + 1
 
         window["-QUERY-LIST-"].update(pretty_data)
 
-    if event == "-CREATE-MEETING-":
-        date = values["-MEETING-DATE-"]
-        hour = values["-MEETING-HOUR-"]
-        minute = values["-MEETING-MINUTE-"]
-        cf1 = values["-FIRST-PERSON-"]
-        cf2 = values["-SECOND-PERSON-"]
-        datetime = date + "T" + hour + ":" + minute + ":00"
-        query = ""
-        # data = graph.run(query).data()
-        # if data:
-        #     sg.Popup('Successfully created!', keep_on_top=True)
-        # else:
-        #     sg.Popup('Error! Entry not created!', keep_on_top=True)
+    if event == "-CREATE-TEST-":
+        authorizedBody = values["-AUTHORIZED-BODY-"]
+        date = values["-TEST-DATE-"]
+        hour = values["-TEST-HOUR-"]
+        minute = values["-TEST-MINUTE-"]
+        cf = values["-TEST-CF-"]
+        result = ""
+        test_type = ""
+        if values["-POSITIVE-"]:
+            result = "Positive"
+        else:
+            result = "Negative"
+        if values["-MOLECULAR-"]:
+            test_type = "Molecular"
+        else:
+            test_type = "Antigen"
 
-    if event == "-CREATE-VISIT-":
-        date = values["-VISIT-DATE-"]
-        hour_in = values["-VISIT-HOUR-IN"]
-        minute_in = values["-VISIT-MINUTE-IN"]
-        hour_out = values["-VISIT-HOUR-OUT"]
-        minute_out = values["-VISIT-MINUTE-OUT"]
-        place = values["-VISITED-PLACE-"]
-        cf = values["-VISITOR-"]
-        datetime_in = date + "T" + hour_in + ":" + minute_in + ":00"
-        datetime_out = date + "T" + hour_out + ":" + minute_out + ":00"
-        query = ""
-        # data = graph.run(query).data()
-        # if data:
-        #     sg.Popup('Successfully created!', keep_on_top=True)
-        # else:
-        #     sg.Popup('Error! Entry not created!', keep_on_top=True)
+        i = 0
+        for name in authorizedBodyNames:
+            if name == authorizedBody :
+                break
+            i = i + 1
 
-    if event == "-FLUSH-":
-        query1 = ""
-        query2 = ""
-        # graph.run(query1)
-        # data = graph.run(query2).data()
-        # if not data:
-        #     sg.Popup('Successfully deleted!', keep_on_top=True)
-        # else:
-        #     sg.Popup('Error! Entries not deleted!', keep_on_top=True)
+        authorizedBodyID = authorizedBodyIDs[i]
+
+        split_date = date.split("-")
+        datetime = datetime.datetime(int(split_date[0]), int(split_date[1]), int(split_date[2]),
+                                     int(hour), int(minute))
+        print(datetime)
+        print(authorizedBodyID)
+
+        query1 = {
+                    "person.codice_fiscale":cf
+                 }
+        query2 = {
+                    "$push":{
+                    "test":{
+                    "$each":[{
+                    "datetime": datetime,
+                    "id_authorized_body": authorizedBodyID,
+                    "result": result,
+                    "type": test_type
+                    }]
+                    }
+                    }
+                    }
+
+        data = collection.update_one(query1, query2)
+        print(data)
+        if data:
+            sg.Popup('Successfully created!', keep_on_top=True)
+        else:
+            sg.Popup('Error! Entry not created!', keep_on_top=True)
 
     if event == "Queries" or event == "Commands":
         window[f'-COL{layout_page}-'].update(visible=False)
