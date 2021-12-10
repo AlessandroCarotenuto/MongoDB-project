@@ -8,6 +8,7 @@
 \usepackage{hyperref}
 \usepackage{enumitem}
 \usepackage[font=small,labelfont=bf]{caption}
+\usepackage{tcolorbox}
 \hypersetup{
     colorlinks,
     citecolor=black,
@@ -115,72 +116,308 @@ Test Types & 2 & Tests & 450\\
 \end{center}
 \section{Queries and Commands}
 \paragraph{} The correct functioning of the information system involves the implementation of some essential commands and queries for the database in order to properly support the app and to ensure the right execution of searches among the data available for statistical or practical purposes. \par
-\paragraph{} First of all you need to load the .csv files with the query you can find following the path \texttt{"documents/importDB.txt"}
+\paragraph{} First of all you need to load the .csv files in two separate collections (authorizedBodies and certifications), you can find them following the path \texttt{"db/ab.csv"} and \texttt{"db/certification.csv"}
+\paragraph{}When you are importing the data make sure to change the datatypes in:
+\begin{itemize}
+\item[•] All the dates/datetimes from String to Date
+\item[•] In certifications test/vaccine.id\textunderscore authorized\textunderscore body from String to ObjectId
+\item[•] In authorizedBodies \textunderscore id from String to ObjectId
+\end{itemize}
+
 \subsection{Queries}
-\subsubsection{Find how many people went without greenpass in a public place}
-\paragraph{} This query allows us to find all the people that went in a public place without the GreenPass and the datetime related.
-
+\subsubsection{Find all the people with the Reinforced GreenPass}
+\paragraph{} This query allows us to find all people in possession of a reinforced greenpass after the latest regulations, that is, all those who have been vaccinated in the last 9 months.
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title=QUERY]
+\begin{verbatim}
+db.certifications.find({
+  "$and":[{"vaccination":{"$exists":true}},
+  {"vaccination.datetime":{"$gte":new Date(
+            ISODate().getTime() - 1000 * 3600 * 24 * 270)}},
+  {"vaccination.datetime":{"$lte":new Date(
+            ISODate().getTime())}}]
+},{
+  "person.name":1,
+  "person.surname":1,
+  "vaccination":1
+})
+\end{verbatim}
+\end{tcolorbox}
 \paragraph{} The output is given by: 
 \begin{itemize}
-\item[•] The name and the surname of the person
-\item[•] The entrance time in the public place
-\item[•] The name of the public place
+\item[•] The ObjectId of the certification document
+\item[•] The name and the surname of the person 
+\item[•] The datetime of the vaccination
 \end{itemize}
+\begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=OUTPUT]
+\begin{verbatim}
+{ _id: ObjectId("61af82fb2468d4592b37b6ee"),
+  person: { name: 'Luca', surname: 'Colombo' },
+  vaccination: 
+   [ { datetime: 2021-09-07T17:31:42.000Z },
+     { datetime: 2021-10-05T17:31:42.000Z } ] }
+{ _id: ObjectId("61af82fb2468d4592b37b70e"),
+  person: { name: 'Lorenzo Federico Giuseppe', 
+            surname: 'Tomasi' },
+  vaccination: [ { datetime: 2021-11-14T10:18:51.000Z } ] }
+{ _id: ObjectId("61af82fb2468d4592b37b6e9"),
+  person: { name: 'Vincenzo', surname: 'Maggiani' },
+  vaccination: 
+   [ { datetime: 2021-10-23T15:51:37.000Z },
+     { datetime: 2021-11-20T16:51:37.000Z } ] }
+        . . .
+\end{verbatim}
+\end{tcolorbox}
 \clearpage
-\subsubsection{Find who lives with an infected individual}
-\paragraph{} This query allows us to detect a "family contact" with an infected person and obtain the people that need to be quarantined.
+\subsubsection{Find the number of vaccinations ordered per month}
+\paragraph{} This query allows us to retrieve some statistical data on the number of the vaccinations per month.
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title=QUERY]
+\begin{verbatim}
+db.certifications.aggregate(
+    { $unwind : "$vaccination" }, 
+    { $group: {
+        _id: {month: { $month: "$vaccination.datetime" },
+        year: { $year: "$vaccination.datetime" } },
+        count: { $sum: 1 }
+    }
+    },{
+      "$sort":{count:-1}
+    }
+)
+\end{verbatim}
+\end{tcolorbox}
 \paragraph{} The output is given by: 
 \begin{itemize}
-\item[•] The house identifier
-\item[•] The name and the surname of the person
-\item[•] The name and the surname of the infected cohabitant
+\item[•] The count of the vaccinations
+\item[•] The months and year
+\begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=OUTPUT]
+\begin{verbatim}
+{ _id: { month: 11, year: 2021 }, count: 41 }
+{ _id: { month: 2, year: 2021 }, count: 36 }
+{ _id: { month: 10, year: 2021 }, count: 36 }
+{ _id: { month: 8, year: 2021 }, count: 36 }
+{ _id: { month: 4, year: 2021 }, count: 35 }
+{ _id: { month: 3, year: 2021 }, count: 32 }
+{ _id: { month: 12, year: 2021 }, count: 29 }
+{ _id: { month: 5, year: 2021 }, count: 27 }
+{ _id: { month: 7, year: 2021 }, count: 27 }
+{ _id: { month: 9, year: 2021 }, count: 26 }
+{ _id: { month: 1, year: 2021 }, count: 22 }
+{ _id: { month: 6, year: 2021 }, count: 14 }
+\end{verbatim}
+\end{tcolorbox}
 
 \end{itemize}
-\subsubsection{Find public place contact with infect people}
-\paragraph{} This query allows us to find the people who went in the same public place (e.g. restaurant, cinema,...) at the same time with infected people starting from 15 days before their positive test.
+\subsubsection{Find the age average of unvaccinated people}
+\paragraph{} This query also allows us to get a statistical information about the age of the unvaccinated people
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title=QUERY]
+\begin{verbatim}
+db.certifications.aggregate([
+    { $match : { 
+      "person.birthdate" : { $exists : true},
+      "vaccine":{"$exists":false}
+    } },
+    { $project : {"ageInMillis" : {$subtract : 
+                 [new Date(), "$person.birthdate"] } } }, 
+    { $project : {"age" : {$divide : 
+                 ["$ageInMillis", 31558464000] }}},
+    // take the floor of the previous number:
+    { $project : {"age" : {$subtract : ["$age", 
+                 {$mod : ["$age",1]}]}}},
+    { $group : { _id : true, avgAge : { $avg : "$age"} } },
+    { $project: { "avgAge": { $round: ["$avgAge", 2] }}}
+])
+\end{verbatim}
+\end{tcolorbox}
 \paragraph{} The output is given by: 
 \begin{itemize}
-\item[•] The name and the surname of the person
-\item[•] The name and the surname of the infected cohabitant
-\item[•] The datetime of the entrance of the health person
-\item[•] The datetime of the entrance of the ill person
-\item[•] The public place
+\item[•] The age average
 \end{itemize}
+\begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=OUTPUT]
+\begin{verbatim}
+{ _id: true, avgAge: 58.14 }
+\end{verbatim}
+\end{tcolorbox}
 
-\subsubsection{Find who got vaccinated in a temporal range}
-\paragraph{} This query allows us to find all the vaccinated people in the temporal range of October 2021.
+\subsubsection{Find all currently infected people}
+\paragraph{} This query allows us to find people currently infected, i.e. those whose last test is positive.
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title=QUERY]
+\begin{verbatim}
+db.certifications.aggregate([
+  {$addFields : {test : {$reduce : {
+        input : "$test", 
+        initialValue : {datetime : 
+             new ISODate('2000-01-01T00:00:00')}, 
+        in : {$cond: [{$gte : ["$$this.datetime", 
+            "$$value.datetime"]},"$$this", "$$value"]}}
+    }}},
+     { $match:{"test.result":"Positive"}},
+     {$project:{
+           "person.name":"$person.name",
+           "person.surname":"$person.surname",
+           "person.codice_fiscale":"$person.codice_fiscale",
+     }}
+])
+\end{verbatim}
+\end{tcolorbox}
 \paragraph{} The output is given by: 
 \begin{itemize}
-\item[•] The name and the surname of the person
-\item[•] The type of the vaccine
-\item[•] The datetime of the vaccine
-
+\item[•] The ObjectId of the certification document
+\item[•] The name and surname of the person
+\item[•] The CF of the person
 \end{itemize}
-\pagebreak
+\begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=OUTPUT]
+\begin{verbatim}
+{ _id: ObjectId("61af82fb2468d4592b37b71e"),
+  person: 
+   { name: 'Adele',
+     surname: 'Mantovani',
+     codice_fiscale: 'MNTDLA62D60C059I' } }
+{ _id: ObjectId("61af82fb2468d4592b37b71b"),
+  person: 
+   { name: 'Ferruccio',
+     surname: 'Meloni',
+     codice_fiscale: 'MLNFRC61D17B246A' } }
+{ _id: ObjectId("61af82fb2468d4592b37b7ab"),
+  person: 
+   { name: 'Riccardo',
+     surname: 'Brumat',
+     codice_fiscale: 'BRMRCR65T22F356R' } }
+\end{verbatim}
+\end{tcolorbox}
 
-\subsubsection{Statistical analysis of the vaccination campaign}
-\paragraph{} This query allows us to compute an analysis on the number of the vaccinated people (and the percentage) grouped by age ranges.
+
+\subsubsection{Find the number of tests per authorized body (JOIN) }
+\paragraph{} This query allows us to find the number of tests that each authorized body did, in this query we use the JOIN of the two document in order to retrieve the name and the type of the authorized body starting from the id in the certification document. 
+\paragraph{}MongoDB is not optimized to perform this type of operation like relational databases, so the query is optimized to perform the join on as few elements as possible grouping the tests in pipeline before the join.
+
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title=QUERY]
+\begin{verbatim}
+db.certifications.aggregate([
+  { $unwind : "$test" },
+  {$group:{
+    _id:"$test.id_authorized_body",
+    count:{$sum:1}
+  }},
+  {
+    "$lookup": {
+        "from": "authorizedBodies",
+       "localField": "_id",
+        "foreignField": "_id",
+        "as": "authorizedBodyInfo"
+        }
+  },
+  {
+    "$project":{_id:0,count:1,
+    "authorizedBodyInfo.name":"$authorizedBodyInfo.name",
+    "authorizedBodyInfo.type":"$authorizedBodyInfo.type"
+    }
+  }
+  ])
+\end{verbatim}
+\end{tcolorbox}
 
 \paragraph{} The output is given by: 
 \begin{itemize}
-\item[•] Total people
-\item[•] Total vaccinated people (with \%)
-\item[•] Vaccinated people in age ranges (with \%)
-
+\item[•] The count of the tests done
+\item[•] The name of the authorized body
+\item[•] The type of the authorized body
 \end{itemize}
+
+\begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=OUTPUT]
+\begin{verbatim}
+{ count: 17,
+  authorizedBodyInfo: [ { name: [ 'Policlinico' ],
+                          type: [ 'Hospital' ] } ] }
+{ count: 21,
+  authorizedBodyInfo: [ { name: [ 'Auxologico San Luca' ], 
+                          type: [ 'Hospital' ] } ] }
+{ count: 25,
+  authorizedBodyInfo: [ { name: [ 'San Raffaele' ],
+                          type: [ 'Hospital' ] } ] }
+{ count: 19,
+  authorizedBodyInfo: [ { name: [ 'San Paolo' ], 
+                          type: [ 'Hospital' ] } ] }
+{ count: 26,
+  authorizedBodyInfo: [ { name: [ 'San Giuseppe' ], 
+                          type: [ 'Hospital' ] } ] }
+{ count: 15,
+  authorizedBodyInfo: [ { name: [ 'Ospedale Fiera' ], 
+                          type: [ 'Hospital' ] } ] }
+        . . .
+\end{verbatim}
+\end{tcolorbox}
+
 
 \subsection{Commands}
-\subsubsection{Federico moves in an other house (CREATE)}
-\paragraph{} In this command we simulate a person moving in an another house.
+\subsubsection{Insert a new Authorized Body (CREATE)}
+\paragraph{} In this command we insert in the authorizedBodies collection a new document.
+
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=COMMAND]
+\begin{verbatim}
+db.authorizedBodies.insertOne({
+  "address":{
+    "address":"Via Roma",
+    "cap":"24030",
+    "geopoint":"45.0000 9.0000",
+    "house":"13b",
+    "municipality":"Bergamo",
+  },
+  "department":"covid test",
+  "name":"Farmacia Comunale",
+  "type":"pharmacy",
+  "healthcarePersonnel":[
+    {
+      "cellphone":"+393476574382",
+      "codice_fiscale":"DNTHGB87P15G764J",
+      "name":"Carlo",
+      "role":"pharmacist",
+      "surname":"Merlutti",
+    }
+  ]
+})
+\end{verbatim}
+\end{tcolorbox}
+
+\subsubsection{Insert a test in a Certification (UPDATE) }
+\paragraph{} In this command we add to a given certification (via ObjectId) a new test as a subdocument in the ArrayList field test.
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=COMMAND]
+\begin{verbatim}
+db.certifications.updateOne({
+  "_id":ObjectId('61af82fb2468d4592b37b70e')
+},{
+  "$push":{
+    "test":{
+      "$each":[{
+        "datetime":ISODate('2021-12-08T16:20:00'),
+        "healthcarePersonnel":{
+          "codice_fiscale":"PLCLRT48C02C224Y",
+          "name":"Alberto Christian",
+          "surname":"Paolucci"
+        },
+        "id_authorized_body":
+                ObjectId('61acd3e25ca7e964a122def1'),
+        "result":"Positive",
+        "type":"Molecular"
+      }]
+    }
+  }
+})
+\end{verbatim}
+\end{tcolorbox}
 
 
-\subsubsection{Delete all the public place records older than 1 year (DELETE) }
-\paragraph{} In this command we simulate the need of removing old records that are not useful anymore.
+\subsubsection{Delete all the Authorized Bodies that test and are pharmacies (DELETE)}
+\paragraph{} In this command we simulate a change of regulations where the pharmacies can no longer test people and therefore we delete this kind of authorized body from the collection.
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=COMMAND]
+\begin{verbatim}
+db.authorizedBodies.deleteMany({
+  "$and":[
+    {"type":"pharmacy"},
+    {"department":"covid test"}]
+})
 
-
-\subsubsection{Name change of public place (UPDATE)}
-\paragraph{} In this command we simulate the need, of a public place manager, of changing name of the activity.
-
+\end{verbatim}
+\end{tcolorbox}
 \clearpage
 \section{UI description \& User Guide}
 \subsection{UI description}
