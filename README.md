@@ -14,7 +14,7 @@ python --version
 ```
 If not, download it from the official website.
 
-Install the required packages (in the "app" folder):
+Install the required packages (from the "app" folder):
 ```
 pip install -r requirements.txt
 ```
