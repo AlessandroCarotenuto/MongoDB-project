@@ -1,11 +1,11 @@
-\babel@toc {english}{}
+\babel@toc {english}{}\relax 
 \contentsline {section}{\numberline {1}Problem Specification}{3}{section.1}%
 \contentsline {paragraph}{}{3}{section*.2}%
 \contentsline {section}{\numberline {2}Hypotheses}{3}{section.2}%
 \contentsline {paragraph}{}{3}{section*.3}%
-\contentsline {section}{\numberline {3}ER diagram}{5}{section.3}%
+\contentsline {section}{\numberline {3}ER Diagram}{5}{section.3}%
 \contentsline {paragraph}{}{5}{section*.4}%
-\contentsline {section}{\numberline {4}Dataset description}{6}{section.4}%
+\contentsline {section}{\numberline {4}Dataset Description}{6}{section.4}%
 \contentsline {paragraph}{}{6}{section*.5}%
 \contentsline {section}{\numberline {5}Queries and Commands}{7}{section.5}%
 \contentsline {paragraph}{}{7}{section*.6}%
@@ -18,8 +18,8 @@
 \contentsline {subsubsection}{\numberline {5.1.2}Find the number of vaccinations ordered per month}{9}{subsubsection.5.1.2}%
 \contentsline {paragraph}{}{9}{section*.11}%
 \contentsline {paragraph}{}{9}{section*.12}%
-\contentsline {subsubsection}{\numberline {5.1.3}Find the age average of unvaccinated people}{10}{subsubsection.5.1.3}%
-\contentsline {paragraph}{}{10}{section*.13}%
+\contentsline {subsubsection}{\numberline {5.1.3}Find the age average of unvaccinated people}{9}{subsubsection.5.1.3}%
+\contentsline {paragraph}{}{9}{section*.13}%
 \contentsline {paragraph}{}{10}{section*.14}%
 \contentsline {subsubsection}{\numberline {5.1.4}Find all currently infected people}{10}{subsubsection.5.1.4}%
 \contentsline {paragraph}{}{10}{section*.15}%
@@ -27,17 +27,17 @@
 \contentsline {subsubsection}{\numberline {5.1.5}Find the number of tests per authorized body (JOIN) }{12}{subsubsection.5.1.5}%
 \contentsline {paragraph}{}{12}{section*.17}%
 \contentsline {paragraph}{}{12}{section*.18}%
-\contentsline {paragraph}{}{13}{section*.19}%
-\contentsline {subsection}{\numberline {5.2}Commands}{14}{subsection.5.2}%
-\contentsline {subsubsection}{\numberline {5.2.1}Insert a new Authorized Body (CREATE)}{14}{subsubsection.5.2.1}%
-\contentsline {paragraph}{}{14}{section*.20}%
-\contentsline {subsubsection}{\numberline {5.2.2}Insert a test in a Certification (UPDATE) }{15}{subsubsection.5.2.2}%
-\contentsline {paragraph}{}{15}{section*.21}%
-\contentsline {subsubsection}{\numberline {5.2.3}Delete all the Authorized Bodies that test and are pharmacies (DELETE)}{16}{subsubsection.5.2.3}%
-\contentsline {paragraph}{}{16}{section*.22}%
-\contentsline {section}{\numberline {6}UI description \& User Guide}{17}{section.6}%
-\contentsline {subsection}{\numberline {6.1}UI description}{17}{subsection.6.1}%
-\contentsline {paragraph}{}{17}{section*.23}%
-\contentsline {subsection}{\numberline {6.2}User Guide}{18}{subsection.6.2}%
-\contentsline {paragraph}{}{18}{section*.24}%
-\contentsline {section}{\numberline {7}References \& Sources}{19}{section.7}%
+\contentsline {paragraph}{}{12}{section*.19}%
+\contentsline {subsection}{\numberline {5.2}Commands}{13}{subsection.5.2}%
+\contentsline {subsubsection}{\numberline {5.2.1}Insert a new Authorized Body (CREATE)}{13}{subsubsection.5.2.1}%
+\contentsline {paragraph}{}{13}{section*.20}%
+\contentsline {subsubsection}{\numberline {5.2.2}Insert a test in a Certification (UPDATE) }{14}{subsubsection.5.2.2}%
+\contentsline {paragraph}{}{14}{section*.21}%
+\contentsline {subsubsection}{\numberline {5.2.3}Delete all the Authorized Bodies that test and are pharmacies (DELETE)}{15}{subsubsection.5.2.3}%
+\contentsline {paragraph}{}{15}{section*.22}%
+\contentsline {section}{\numberline {6}UI Description \& User Guide}{16}{section.6}%
+\contentsline {subsection}{\numberline {6.1}UI Description}{16}{subsection.6.1}%
+\contentsline {paragraph}{}{16}{section*.23}%
+\contentsline {subsection}{\numberline {6.2}User Guide}{19}{subsection.6.2}%
+\contentsline {paragraph}{}{19}{section*.24}%
+\contentsline {section}{\numberline {7}References \& Sources}{21}{section.7}%
