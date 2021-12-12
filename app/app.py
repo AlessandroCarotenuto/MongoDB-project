@@ -5,6 +5,7 @@ import pprint as pp
 import re
 import datetime
 import pandas as pd
+import certifi
 
 # save FPDF() class into a variable pdf
 pdf = FPDF()
@@ -154,9 +155,10 @@ layout = [[sg.Column(query_layout, key='-COLQueries-'), sg.Column(crud_layout, v
 
 window = sg.Window("CertificationsManager 1.0", layout)
 layout_page = "Queries"
+ca = certifi.where()
 # init database
 # TO CHANGE DEPENDING ON YOUR DATABASE ADDRESS
-client = MongoClient("mongodb+srv://root:smbud@smbud.icy9p.mongodb.net/test?retryWrites=true&w=majority")
+client = MongoClient("mongodb+srv://root:smbud@smbud.icy9p.mongodb.net/test?retryWrites=true&w=majority", tlsCAFile=ca)
 db = client.smbud_data
 collection = db.certifications
 
@@ -346,7 +348,7 @@ while True:
 
         i = 0
         for name in authorizedBodyNames:
-            if name == authorizedBody :
+            if name == authorizedBody:
                 break
             i = i + 1
 
@@ -359,20 +361,20 @@ while True:
         print(authorizedBodyID)
 
         query1 = {
-                    "person.codice_fiscale":cf
-                 }
+            "person.codice_fiscale": cf
+        }
         query2 = {
-                    "$push":{
-                    "test":{
-                    "$each":[{
-                    "datetime": datetime,
-                    "id_authorized_body": authorizedBodyID,
-                    "result": result,
-                    "type": test_type
+            "$push": {
+                "test": {
+                    "$each": [{
+                        "datetime": datetime,
+                        "id_authorized_body": authorizedBodyID,
+                        "result": result,
+                        "type": test_type
                     }]
-                    }
-                    }
-                    }
+                }
+            }
+        }
 
         data = collection.update_one(query1, query2)
         print(data)
