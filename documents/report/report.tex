@@ -7,6 +7,7 @@
 \usepackage{color} 
 \usepackage{hyperref}
 \usepackage{enumitem}
+\usepackage[normalem]{ulem}
 \usepackage[font=small,labelfont=bf]{caption}
 \usepackage{tcolorbox}
 \hypersetup{
@@ -54,26 +55,25 @@
 \paragraph{}During the sanitary emergency due to the Covid-19 pandemic, many programs and applications developed thanks to the use of Big Data proved to be particularly effective in different settings and scenarios, such as the hospital administration, the hospitalizations organization or the analysis of data relating to various clinical cases. Among the various areas that have been supported by these technologies there is also that which concerns the tracking of populations belonging to a given geographical area and the collection of all information regarding the tests carried out and the vaccination status. \par
 Our project aims to create an information system suitable for this specific use case and to do this it is necessary to design a database that allows us to store large amounts of data derived from heterogeneous sources and to carry out targeted queries useful for different purposes. The NOSQL document-based approach, known for being based on managing data saved in JSON-like documents, is the optimal one in this case and MongoDB is the open source database management software that is best suited to accomplish this task thanks to the considerable scalability guaranteed by the automatic data sharding and ease of use thanks to the dynamic schemes developed starting from the archived documents.
 \section{Hypotheses}
-\paragraph{} The way in which the database was structured and implemented is based on some hypotheses discussed in the design phase. \par Considering a typical scenario in which each person can interact either with people who live with him (family members or roommates) or with other people who go to meet voluntarily or not in a limited closed place (for example a gym, a public place, a restaurant, etc.) or in an open place located in a generic position, it was assumed that the infection can occur if during the contact between the two subjects (one of which is potentially infected) the distance between them was particularly close and if the contact duration was at least 15 minutes. In addition, to check the state of health of each individual in relation to the pandemic situation, it is essential to consider whether they have been given a vaccine and/or whether they have recently undergone a test to check for any positivity. \par
-Specifically, in order to simulate the pandemic situation in the most realistic way possible and to optimally manage the available data that an information system directly connected to an app supported by the database will have to process, the following assumptions were taken into consideration:
+\paragraph{} During the design phase,some considerations were made regarding how to structure and implement the database to obtain a solution that was effective and performing but at the same time consistent with the real current scenarios. First of all, two types of documents have been created: Certification and AuthorizedBody; the first represents a sort of ”medical chart” containing the following fundamental information for each individual:
   \begin{enumerate}[noitemsep]
-    \item people can go to public places even without a green pass (therefore without a vaccine or a negative test carried out in the last 48 hours),
-    \item data relating to public places are sent to the system by the manager of the public place itself,
-    \item to record a greater number of relationships to be processed, while ensuring the consistency and meaningfulness of the stored data, it was decided to limit to an example study case in which the interactions present in the dataset are related to the single city of Milan and for a limited time interval, therefore:
+    \item list of tests she/he has undergone,
+    \item list of vaccine doses that have been administered,
+    \item personal details (such as name, surname, date of birth, etc.),
+    \item one or more emergency contacts to call in case of need.
+   \end{enumerate}
+Within the documents stored in the database for each of these four fields, subfields have been provided (as shown in the \texttt{"jsonSchema.json"} file into the \texttt{"documents"} folder) that allow you to manage the various data with MongoDB in order to execute specific queries and commands. \par
+The second document contains details related to Authorized Bodies, i.e. institutional places where it is possible to get vaccinated and/or where one can undergo a test, the fields are based on specific assumptions about where these places are located and the healthcare personnel working there. \par
+At last, in order to record a greater number of elements to be processed within the dataset, while ensuring the meaningfulness and consistency of the information stored, some assumptions and limitations have been established in the creation of the data managed by the database, therefore:
   \begin{itemize}[noitemsep]
-    \item[-] the tests dates, the meetings between people and the visits to public places took place from the 15\textsuperscript{th} of October to the 15\textsuperscript{th} of November, in addition, to test the queries more easily, there is a specific date, i.e. the 31\textsuperscript{st} of October, that expressely presents multiple recorded interactions,
-    \item[-] vaccine administrations were all performed within the last year,
-    \item[-] all public places are located in Milan,
-    \item[-] meetings between people are geolocated within the city limits
+    \item[-] each Authorized Body is associated with a document identified by a unique ID, which is directly referred to in the test/vaccine lists of the Certification document;
+    \item[-] each test/vaccine was associated with only one member of the healthcare personnel who represents a sort of ”responsible” for that given administration;
+    \item[-] for the sake of simplicity in data management, it was decided that for each Authorized Body there should be a list consisting of at most 5 members of the healthcare personnel, ”responsible” for the various tests/vaccines to which they are associated;
+    \item[-] each person can come from any Italian location, but only Authorized Bodies belonging to the city of Milan with the relative coordinates have been examined for the purpose of performing more in-depth analysis on the data;
+	\item[-] vaccines were administered throughout the last year while tests during the last month.
   \end{itemize}
-    \item with regard to the various connections that can exist between several people and the infections that can occur within the same family, it was preferred, for design purposes, to consider the concept of "same residential unit" (i.e. residence) rather than that of "family", since belonging to a given family unit does not necessarily imply a constant coexistence (e.g. workers who often travel for a job or off-site students) while a relationship of coexistence between several people, not necessarily related to each other, usually involves a close and inevitable contact,
-    \item concerning to meetings between two or more people, it was assumed that any contact tracing devices/ apps interact with the system, communicating this information for each meeting: person1, person2, time at which the contact took place, geographical point in where the contact took place,
-    \item a person is considered infected from the moment he undergoes a test and receives a positive result until he takes another test again but it is negative,
-    \item in the event that a person undergoes a test and receives a positive result, all people met in the 15 days prior to the test will receive an alert notification on the app ensuring the privacy of the infected person is safeguarded,
-    \item the possibility has also been envisaged in which a person already vaccinated may still be infected, in line with the cases that actually occurred
-  \end{enumerate}
 \clearpage
-\section{ER diagram}
+\section{ER Diagram}
 \paragraph{}
 	\begin{center}
  		\includegraphics[width = 15 cm]{ER_diagram.png}
@@ -83,7 +83,7 @@ Specifically, in order to simulate the pandemic situation in the most realistic 
   \begin{itemize}[noitemsep]
    	\item[-]	\textbf{Address}(\underline{Address}, \underline{HouseNumber}, CAP, Latitude, Longitude, Municipality)
 	\item[-]	\textbf{AuthorizedBody}\underline{(ID}, Department, Name, Type)
-	\item[-]	\textbf{Certification}(\underline{ID})
+	\item[-]	\textbf{Certification}(\underline{ID},\dashuline{Person.CF})
 	\item[-]	\textbf{HealthcarePersonnel}(\underline{CF}, Birthdate, Cellphone, Name, Sex, Surname)
 	\item[-]	\textbf{Person}(\underline{CF}, Birthdate, Cellphone, Name, Sex, Surname)
 	\item[-]	\textbf{Test}(\underline{ID}, Datetime, Result, Type)
@@ -94,23 +94,21 @@ Specifically, in order to simulate the pandemic situation in the most realistic 
 	\item[-]	\textbf{WorksIn}(\underline{AuthorizedBody.ID}, \underline{HealthcarePersonnel.CF})
   \end{itemize} \par
 The \textbf{Person} entity describes each individual and their personal data, \textbf{HealthcarePersonnel} is a specialization of \textbf{Person} and includes all the people (doctors, nurses, pharmacists, etc.) who work (as indicated by the many-to-many \textbf{WorksIn} relationship) at an \textbf{AuthorizedBody}. Both the \textbf{Test} and \textbf{Vaccination} entities are linked to \textbf{HealthcarePersonnel} by the many-to-many \textbf{AttendsTest} and \textbf{AttendsVaccination} relationships, while the link with \textbf{AuthorizedBody} is given by the one-to-many \textbf{AdministersTest} and \textbf{AdministersVaccination}. Each \textbf{Person} can have one and only one (one-to-one relationship \textbf{Has}) \textbf{Certification}, that contains information regarding how many and which tests a person has undergone and whether or not he has received one or more doses of the vaccine, in fact, \textbf{Certification} is in a one-to-many relationship with both \textbf{Test} and \textbf{Vaccination}, through \textbf{IncludesTest} and \textbf{IncludesVaccination}, respectively. Furthermore, each \textbf{Certification} must also include for each \textbf{Person} a sort of "emergency contact" with its details as evidenced by the many-to-many \textbf{Contact} relationship. Finally, to save information relating to the geographical location of persons and authorized bodies, an \textbf{Address} entity was added with specific attributes, connected to \textbf{Person} and \textbf{AuthorizedBody} respectively by the one-to-many \textbf{LivesIn} and \textbf{In} relationships.
-\section{Dataset description}
-\paragraph{} One of the most critical parts of working with Big Data is managing large amounts of data collected in large datasets. To test and simulate the use of the database for contact tracing activities, some sample datasets were generated, saved in .csv format and imported into Neo4j through the command: \texttt{LOAD CSV FROM "file: ///file.csv" AS ...}. \par
-Each dataset is divided into various fields that trace the structure of the tables expressed in the ER model, each one was generated randomly through Python scripts (you can find these ones into the folder \texttt{"db"}) and to experiment and perform at best the possible tests on the queries and commands that can be executed thanks to Neo4j the number of entries foreseen for each dataset is in the order of magnitude of the hundreds, as a whole, starting exclusively from the data loaded from the datasets, the database provides:
+\section{Dataset Description}
+\paragraph{} Before starting to execute queries and commands based on the design choices that are previously established to define the database structure, it was necessary to generate some sample datasets so that it was possible to work on realistic data during the development and testing phases of the
+developed features. \par
+There are 2 datasets and they follow the characteristics of the documentary approach, in fact, they represent the Certification and Vaccination documents with the various fields and subfields that trace the structure of the tables expressed in the ER model, they were generated randomly through scripts in Python and were finally saved in .csv format (you can find them into the folder \texttt{"db"}) in order to facilitate the import into MongoDB, below you can consult a table with some metrics to understand the dimensions of the datasets used.
 \begin{center}
 \begin{tabular}{|l|l|l|l|}
 \hline
-Homes & 101 & Residence Relationship & 300 \\
+Pharmacies & 6 & Tests & 302 \\
 \hline
-People & 300 & Meetings & 726 \\
+Hospitals & 10 & Certifications & 300 \\
 \hline
-Public Places & 20 & Public Places Visits & 600 \\
+Vaccination Hubs & 4 & Vaccinations & 365 \\
 \hline
-Vaccine Types & 4 & Vaccinations & 526 \\
-\hline
-Test Types & 2 & Tests & 450\\
-\hline
-\textbf{TOTAL NODES} & \textbf{427} & \textbf{TOTAL RELATIONSHIPS} & \textbf{2602}\\
+Tot Authorized Bodies & 20 & Healthcare Personnel & 56 \\
+
 \hline
 \end{tabular}
 \end{center}
@@ -143,7 +141,7 @@ db.certifications.find({
 \end{verbatim}
 \end{tcolorbox}
 \paragraph{} The output is given by: 
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item[•] The ObjectId of the certification document
 \item[•] The name and the surname of the person 
 \item[•] The datetime of the vaccination
@@ -186,7 +184,7 @@ db.certifications.aggregate(
 \end{verbatim}
 \end{tcolorbox}
 \paragraph{} The output is given by: 
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item[•] The count of the vaccinations
 \item[•] The months and year
 \begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=OUTPUT]
@@ -260,7 +258,7 @@ db.certifications.aggregate([
 \end{verbatim}
 \end{tcolorbox}
 \paragraph{} The output is given by: 
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item[•] The ObjectId of the certification document
 \item[•] The name and surname of the person
 \item[•] The CF of the person
@@ -317,7 +315,7 @@ db.certifications.aggregate([
 \end{tcolorbox}
 
 \paragraph{} The output is given by: 
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item[•] The count of the tests done
 \item[•] The name of the authorized body
 \item[•] The type of the authorized body
@@ -419,35 +417,60 @@ db.authorizedBodies.deleteMany({
 \end{verbatim}
 \end{tcolorbox}
 \clearpage
-\section{UI description \& User Guide}
-\subsection{UI description}
-\paragraph{}The design of the information system ended with the development of \emph{ContagionShield}, an application connected to the database with a simple GUI that is very intuitive and easy to use. The UI was created with the Python programming language by means of the libraries: \emph{PySimpleGUI} for the creation of the graphical interface, \emph{Py2neo} to work with Neo4j through the syntax offered by Python and \emph{pandas} to manage the analysis and manipulation of data, you can find these ones into the folder \texttt{"contagionshield"}. \par
+\section{UI Description \& User Guide}
+\subsection{UI Description}
+\paragraph{}To conclude our project, a simple application connected to the database has been developed, the programming language chosen to write the code is Python which has proved to be particularly useful and versatile thanks above all to the considerable number of libraries made available to developers, including: \emph{PySimpleGUI}, which allows you to create essential and user-friendly graphical interfaces, \emph{PyMongo}, the official MongoDB Python driver for with the database, and \emph{pandas} to manage the analysis and manipulation of data, these libraries are all listed in the \texttt{"requirements.txt"} file in the folder \texttt{"app"}. \par
+\begin{center}
+ 		\includegraphics[width = 13 cm]{homepage.png}
+		\captionof{figure}{Homepage of CertificationManager 1.0}
+\end{center}
+\clearpage
+\textbf{Figure 2} shows the homepage of the \emph{CertificationsManager 1.0} app, the screen is divided into two side sections: on the left you can obtain your certification starting from your own social security number (if the certification is already present in the database, the "Download" button will be activated and it will be possible to download it \textbf{Figure 3}), on the right you can run a query choosing from the 5 defined and described in Chapter 5 of the report (\textbf{Figure 4}). \par
 
-As you can see from \textbf{Figure 3}, the main screen of the application is divided into two sections: one on the left that allows you to create customizable queries by choosing date, place, time interval and whether to display the vaccinated, non-vaccinated or with negative test, in \textbf{Figure 4} there is an example query with the results obtained; the other side section on the right (\textbf{Figure 5}) presents some predefined queries, some of them follow the ones specified and described in Chapter 5 of the report. \par
-
-\pagebreak
-Finally, as shown in \textbf{Figure 6}, it is possible to execute some of the commands already presented in Chapter 5 by reaching the appropriate section of the application by means of the \texttt{"Commands"} button in the lower left corner of the main screen. The executable commands allow you to create new meetings between several people by indicating their social security numbers, the date and time, create new visits to public places by specifying who went to a given place and when and in the end you can also delete all the visits to public places recorded in the last year. \par
-
+\begin{center}
+ 		\includegraphics[width = 13 cm]{certification.png}
+		\captionof{figure}{A sample certification retrieved from the DB}
+\end{center}
+\begin{center}
+ 		\includegraphics[width = 13 cm]{querylist.png}
+		\captionof{figure}{The of the queries implemented into the app}
+\end{center}
+		
+Finally, as shown in \textbf{Figure 5}, it is possible to execute some of the commands already presented in Chapter 5 by reaching the appropriate section of the application by means of the \texttt{"Commands"} button in the lower left corner of the main screen. One of the executable commands allows you to create and add new tests to the certification of a person  by indicating him/her social security numbers, the date and time, the test type and the result.\par
+\begin{center}
+ 		\includegraphics[width = 8 cm]{commands.png}
+		\captionof{figure}{The create test command window}
+\end{center}
 \subsection{User Guide}
 \paragraph{}
-In order to run \emph{ContagionShield} it is necessary to verify some requirements and to perform some actions:
-\begin{itemize}[noitemsep]
+In order to run the app it is necessary to verify some requirements and to perform some actions:
+  \begin{itemize}[noitemsep]
    \item[-] At first you have to check if you have the right Python version installed by using the command: \texttt{python --version}, if not you could download it from the official website: https://www.python.org/ 
-   \item[-] Then make sure your local database is at \texttt{localhost:7687} and that it has \texttt{"smbud"} as password
-   \item[-] Install the required packages (in the "contagionshield" folder): \texttt{pip install -r requirements.txt}
-   \item[-] Finally make it run by navigating to the folder where you have been saved the materials, then into \texttt{"contagionshield"} folder and run: \texttt{python contagionshield.py}
-   \item[-] From there you can execute queries about the collected data
-\end{itemize}
+   \item[-] Install the required packages (from the \texttt{app} folder): \texttt{pip install -r requirements.txt}
+   \item[-] In order to set up MongoDB you have to:
+  	\begin{enumerate}[noitemsep]
+  		\item Log into your account
+  		\item After creating a new Cluster, click on  \texttt{Connect} on the cluster
+		\item Then choose as connection method \texttt{Connect your application}
+		\item Select your driver \texttt{Python} and version \texttt{3.6 or later}
+		\item Add your connection string into the application code by copying the link that has been generated
+		\item Replace the link obtained in line 159 of the app.py source code, remembering to replace \texttt{<password>} and \texttt{<myFirstDatabase>} respectively with the user password and name of the database that the connection will use by default
+		\item Create the database with \texttt{database name = smbud\_data} and the collections with \texttt{collection name = certifications} and \texttt{collection name = authorizedBodies}
+		\item To populate the collections, import respectively the \texttt{certifications.csv} and \texttt{ab.csv} files present in the \texttt{db} folder of the repo and modify all dates with type \texttt{date} and all ids with type \texttt{objectID}
+
+  	\end{enumerate}
+	\item[-] Finally make it run by navigating to the folder where this repository has been cloned, then into \texttt{app} folder and run: \texttt{python} \texttt{app.py}
+	\item[-] From there you can execute queries about the collected data.
+  \end{itemize}
+
 \newpage
 \section{References \& Sources}
   \begin{thebibliography}{9}
     \bibitem{} Course Slides
-    \bibitem{} https://pysimplegui.readthedocs.io/en/latest/call%20reference/
-    \bibitem{} https://py2neo.org/
-    \bibitem{} https://neo4j.com/docs/cypher-manual/current/
-    \bibitem{} https://neo4j.com/developer/python/
+    \bibitem{} https://pysimplegui.readthedocs.io/en/latest/call\%20reference/
+    \bibitem{} https://docs.mongodb.com/manual/
+    \bibitem{} https://pymongo.readthedocs.io/en/stable/
     \bibitem{} http://iniball.altervista.org/Software/ProgER
-    \bibitem{} https://neo4j.com/developer/cypher/
     \bibitem{} https://pandas.pydata.org/docs/
   \end{thebibliography}
 \end{document}
