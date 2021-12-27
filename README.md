@@ -1,4 +1,4 @@
-# Group 14 SMBUD Project MongoDB-project Repository
+# Group 14 SMBUD Project MongoDB Repository
 
 ## Usage
 Clone this repository locally using:
